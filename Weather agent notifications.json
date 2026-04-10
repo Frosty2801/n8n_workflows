@@ -1,0 +1,158 @@
+{
+  "name": "Weather agent notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 7,
+              "triggerAtHour": 7,
+              "triggerAtMinute": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "f185bc15-dae6-4d1f-8d1f-31f4e8298fcb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres un asistente amigable. Con base en el siguiente pronóstico del tiempo para los próximos 5 días, redacta un resumen claro y útil en español, mencionando temperaturas, lluvia y recomendaciones:\n\n{{ JSON.stringify($('OpenWeatherMap').first().json) }}",
+        "options": {
+          "systemMessage": "=Eres un meteorólogo profesional. Crea un email atractivo y bien estructurado con el pronóstico del tiempo para los próximos 5 días.\n\nDatos del pronóstico: {{ $json.list }}\n\nEstructura el email así:\n- Saludo personalizado\n- Resumen general del clima\n- Pronóstico día por día con:\n  * Fecha\n  * Temperatura máxima/mínima\n  * Condiciones del tiempo\n  * Probabilidad de lluvia\n- Consejos basados en el clima\n- Despedida amigable\n\nHazlo visualmente atractivo con emojis apropiados y formato Markdown."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        64,
+        0
+      ],
+      "id": "8ecdebe2-d34b-43b9-9a98-906c2f6cc88f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        0,
+        256
+      ],
+      "id": "7bb664b3-e5d0-4b3a-874f-bd4c62f2f45c",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "G5UoTeicGc7pThXH",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "5DayForecast",
+        "cityName": "America,Medellin",
+        "language": "en"
+      },
+      "type": "n8n-nodes-base.openWeatherMap",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "4e43a05c-6152-41ed-9f41-3419e1e767fb",
+      "name": "OpenWeatherMap",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "VnAHO5zebVU6gOEv",
+          "name": "OpenWeatherMap account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jdgutierrez722018@gmail.com",
+        "subject": "=🌤️ Pronóstico del Tiempo - {{ $now.format('DD/MM/YYYY') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "e86c581b-ec2a-4378-8903-fe69a24a6031",
+      "name": "Send a message",
+      "webhookId": "159c17da-1046-4e80-a417-add0ab703842"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "OpenWeatherMap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenWeatherMap": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1da00c2f-5656-4178-9d27-6b918b6a4a3d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d019f7ef872c2532723d92206b5d1a19e98b0c80b7f6bbc717bb2639c401389"
+  },
+  "id": "KP4UTQWW6O21Pn7F",
+  "tags": []
+}
